@@ -1,0 +1,33 @@
+// schema.prisma
+
+datasource db {
+  provider = "postgresql" // or any other provider you are using
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String         @id @default(uuid()) // Unique user identifier
+  username     String         @unique
+  email        String         @unique
+  password     String // Hashed password
+  refreshToken RefreshToken[] // One-to-many relationship with RefreshToken
+  createdAt    DateTime       @default(now()) // Automatically set on record creation
+  updatedAt    DateTime       @updatedAt // Automatically set on record update
+
+  @@map("users") // Map table name to `users`
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid()) // Unique token identifier
+  token     String // Hashed refresh token
+  userId    String // Reference to User ID
+  expiresAt DateTime // Expiration timestamp for refresh token
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], name: "userId_idx") // Optional index on userId
+  @@map("refresh_tokens") // Map table name to `refresh_tokens`
+}
